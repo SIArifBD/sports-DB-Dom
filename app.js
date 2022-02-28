@@ -1,14 +1,32 @@
 const allPlayers = () => {
+    document.getElementById('player-container').innerHTML = '';
+    document.getElementById('spinner').style.display = 'block';
     const searchValue = document.getElementById('search-box').value;
 
     const url = `https://www.thesportsdb.com/api/v1/json/2/searchplayers.php?p=${searchValue}`;
     fetch(url)
         .then(res => res.json())
-        .then(data => showPlayerDetails(data.player));
+        // .then(data => showPlayerDetails(data.player));
+        .then(data => {
+            if (data.player === null) {
+                document.getElementById('spinner').style.display = 'block';
+            }
+            else {
+                showPlayerDetails(data.player);
+                document.getElementById('spinner').style.display = 'none';
+            }
+        });
+    document.getElementById('search-box').value = '';
 };
 
 const showPlayerDetails = (players) => {
-    console.log(players);
+    /*  if (players) {
+         document.getElementById('spinner').style.display = 'block';
+     }
+     else {
+         document.getElementById('spinner').style.display = 'none';
+     } */
+    // console.log(players);
     for (const player of players) {
         const parent = document.getElementById("player-container");
 
@@ -23,10 +41,41 @@ const showPlayerDetails = (players) => {
             <p></p>
             <div class="allbutton">
                 <div class="btn btn-danger">Delete</div>
-                <div class="btn btn-success">Details</div>
+                <div onclick="details('${player.idPlayer}')" class="btn btn-success">Details</div>
             </div>
         </div>
     `;
         parent.appendChild(div);
     }
 };
+
+const details = (id) => {
+    const url = `https://www.thesportsdb.com/api/v1/json/2/lookupplayer.php?id=${id}`;
+    fetch(url)
+        .then(res => res.json())
+        .then(data => setDetails(data.players[0]));
+}
+
+const setDetails = (info) => {
+
+
+    if (info.strGender === 'Male') {
+        document.getElementById('male').style.display = 'block';
+        document.getElementById('female').style.display = 'none';
+    }
+    else {
+        document.getElementById('male').style.display = 'none';
+        document.getElementById('female').style.display = 'block';
+    }
+
+    document.getElementById('details-container').innerHTML = `
+        <div>
+            <img class="w-50" src="${info.strThumb}" alt="">
+            <h1>Name: ${info.strPlayer}</h1>
+            <h5>Country: ${info.strNationality}</h5>
+            <h5>Birth Place: ${info.strBirthLocation}</h5>
+            <h5>Present Team: ${info.strTeam}</h5>
+            <p>Details: ${info.strDescriptionEN}</p>
+        </div>
+    `;
+}
